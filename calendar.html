@@ -1,60 +1,290 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8" />
-    <title>Calendar Widget</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 24px 20px;
-            background: #f6f3ee; /* 米白 */
-            font-family: "Times New Roman", "Noto Serif SC", serif;
-            color: #3a3a3a;
-            text-align: center;
-            border-radius: 12px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Month Calendar</title>
+  <style>
+  :root{
+    --bg: #1f1e1c;               /* 卡片底：暖黑 */
+    --ink: #e8e3dc;              /* 主文字 */
+    --muted: rgba(232,227,220,.62);
+    --line: rgba(255,255,255,.10);
+    --chip: rgba(255,255,255,.08);
+    --hover: rgba(255,255,255,.06);
+    --shadow: 0 12px 32px rgba(0,0,0,.38);
+    --radius: 18px;
+    --accent: #c8b08a;           /* today 小点 */
+  }
 
-        .year {
-            font-size: 14px;
-            letter-spacing: 2px;
-            color: #9c9388;
-            margin-bottom: 6px;
-        }
+  *{ box-sizing: border-box; }
 
-        .date {
-            font-size: 56px;
-            font-weight: 500;
-            line-height: 1;
-            margin: 4px 0 10px;
-        }
+  body{
+    margin: 0;
+    background: transparent;
+    font-family: "Times New Roman","Noto Serif SC",serif;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    color-scheme: dark;
 
-        .week {
-            font-size: 15px;
-            color: #7a736b;
-            letter-spacing: 1px;
-        }
+    /* ✅ 关键：让数字等宽（解决“看起来不对齐”） */
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+  }
 
-        .divider {
-            width: 40px;
-            height: 1px;
-            background: #cfc8be;
-            margin: 14px auto;
-        }
-    </style>
+  .card{
+    width: 560px;                 /* 你截图那种更宽的比例 */
+    max-width: 92vw;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 22px 22px 18px;
+    overflow: hidden;
+  }
+
+  .header{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 16px;
+  }
+
+  .title{
+    text-align: left;
+    line-height: 1.05;
+  }
+
+  .year{
+    font-size: 16px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .month{
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: .5px;
+  }
+
+  .nav{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 6px;
+  }
+
+  .btn{
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.04);
+    cursor: pointer;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    user-select: none;
+    transition: transform .06s ease, background .2s ease, border-color .2s ease;
+    font-size: 22px;
+  }
+  .btn:active{ transform: translateY(1px); }
+  .btn:hover{
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.18);
+  }
+
+    .dow{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 14px;
+    padding: 10px 2px 8px;
+    color: rgba(232,227,220,.55);
+    font-size: 18px;
+    letter-spacing: 0; /* ✅ 删掉 */
+    }
+
+    .dow > div{
+    text-align: center;
+    letter-spacing: .18em; /* ✅ 小一点，且只作用在单个字母上 */
+    }
+
+
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 14px;
+    padding: 8px 2px 2px;
+  }
+
+  .cell{
+    height: 56px;
+    border-radius: 18px;
+
+    /* ✅ 强制每格内容正中（对齐稳定） */
+    display: grid;
+    place-items: center;
+    text-align: center;
+
+    font-size: 26px;
+    border: 1px solid transparent;
+    transition: background .15s ease, border-color .15s ease;
+
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    line-height: 1;
+    width: 100%; 
+
+  }
+
+  .cell.other{
+    color: rgba(232,227,220,.22);
+  }
+
+  .cell:hover{
+    background: var(--hover);
+    border-color: rgba(255,255,255,.10);
+  }
+
+  .cell.today{
+    background: rgba(255,255,255,.10);
+    border-color: rgba(255,255,255,.18);
+    font-weight: 600;
+    position: relative;
+  }
+  .cell.today::after{
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: .9;
+  }
+</style>
+
+
 </head>
 <body>
-    <div class="year" id="year"></div>
-    <div class="date" id="date"></div>
-    <div class="divider"></div>
-    <div class="week" id="week"></div>
+  <div class="card" id="card">
+    <div class="header">
+      <div class="title">
+        <div class="year" id="yearText"></div>
+        <div class="month" id="monthText"></div>
+      </div>
+      <div class="nav">
+        <div class="btn" id="prev" aria-label="prev month">‹</div>
+        <div class="btn" id="next" aria-label="next month">›</div>
+      </div>
+    </div>
 
-    <script>
-        const now = new Date();
-        const weeks = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    <div class="dow" id="dow"></div>
+    <div class="grid" id="grid"></div>
+  </div>
 
-        document.getElementById("year").innerText = now.getFullYear();
-        document.getElementById("date").innerText = now.getDate();
-        document.getElementById("week").innerText = weeks[now.getDay()];
-    </script>
+  <script>
+    // 周一开头（更像 planner）
+    const DOW = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+    const dowEl = document.getElementById("dow");
+    const gridEl = document.getElementById("grid");
+    const yearText = document.getElementById("yearText");
+    const monthText = document.getElementById("monthText");
+
+    DOW.forEach(d => {
+      const div = document.createElement("div");
+      div.textContent = d;
+      dowEl.appendChild(div);
+    });
+
+    const today = new Date();
+    // 当前视图月份（用每月1号定位）
+    let view = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    function pad2(n){ return String(n).padStart(2,"0"); }
+
+    function render(){
+      gridEl.innerHTML = "";
+
+      const y = view.getFullYear();
+      const m = view.getMonth();
+
+      yearText.textContent = String(y);
+      monthText.textContent = MONTHS[m];
+
+      // 获取本月第一天是周几（把周日=0转换成周一=0）
+      const first = new Date(y, m, 1);
+      const firstDay = (first.getDay() + 6) % 7; // Mon=0 ... Sun=6
+
+      // 本月天数
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+      // 上月天数
+      const daysInPrevMonth = new Date(y, m, 0).getDate();
+
+      // 网格需要 6 行更稳定（嵌入 Notion 不会跳高度）
+      const totalCells = 42;
+
+      for(let i=0; i<totalCells; i++){
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        // 计算这个格子的日期
+        const dayNum = i - firstDay + 1;
+        let cellDate;
+
+        if(dayNum < 1){
+          // 上月
+          const d = daysInPrevMonth + dayNum;
+          cell.textContent = d;
+          cell.classList.add("other");
+          cellDate = new Date(y, m - 1, d);
+        }else if(dayNum > daysInMonth){
+          // 下月
+          const d = dayNum - daysInMonth;
+          cell.textContent = d;
+          cell.classList.add("other");
+          cellDate = new Date(y, m + 1, d);
+        }else{
+          // 本月
+          cell.textContent = dayNum;
+          cellDate = new Date(y, m, dayNum);
+        }
+
+        // today 高亮
+        if(
+          cellDate.getFullYear() === today.getFullYear() &&
+          cellDate.getMonth() === today.getMonth() &&
+          cellDate.getDate() === today.getDate()
+        ){
+          cell.classList.add("today");
+        }
+
+        gridEl.appendChild(cell);
+      }
+    }
+
+    document.getElementById("prev").addEventListener("click", () => {
+      view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
+      render();
+    });
+    document.getElementById("next").addEventListener("click", () => {
+      view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
+      render();
+    });
+
+    render();
+  </script>
 </body>
 </html>
