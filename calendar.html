@@ -29,7 +29,7 @@
     padding: 12px;
     color-scheme: dark;
 
-    /* ✅ 关键：让数字等宽（解决“看起来不对齐”） */
+    /* 数字等宽，减轻“看起来不对齐” */
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1, "lnum" 1;
   }
@@ -37,7 +37,7 @@
   .card{
     width: 100%;
     max-width: 560px;
-    min-width: 260px;
+    min-width: 0;                 /* ✅ 关键：不要用 min-width 顶爆 Notion 窄 embed */
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 24px;
@@ -51,6 +51,8 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
+    row-gap: 12px;
+    flex-wrap: wrap;              /* ✅ 关键：窄屏时允许换行，避免标题和按钮互挤 */
     padding: 0 0 14px;
     border-bottom: 1px solid var(--line);
     margin-bottom: 16px;
@@ -59,6 +61,8 @@
   .title{
     text-align: left;
     line-height: 1.05;
+    flex: 1 1 240px;              /* ✅ 标题区可缩可换行 */
+    min-width: 0;
   }
 
   .year{
@@ -72,6 +76,9 @@
     font-size: 44px;
     font-weight: 500;
     letter-spacing: .5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;      /* ✅ 极窄时保证不炸布局 */
   }
 
   .nav{
@@ -79,6 +86,8 @@
     gap: 12px;
     align-items: center;
     margin-top: 6px;
+    margin-left: auto;            /* ✅ 换行时保持靠右 */
+    flex: 0 0 auto;
   }
 
   .btn{
@@ -101,49 +110,47 @@
     border-color: rgba(255,255,255,.18);
   }
 
-    .dow{
+  .dow{
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: clamp(6px, 2vw, 14px);
     padding: 10px 2px 8px;
     color: rgba(232,227,220,.55);
     font-size: 18px;
-    letter-spacing: 0; /* ✅ 删掉 */
-    }
+    letter-spacing: 0;            /* 不要整行拉字距，会制造“不对齐”错觉 */
+  }
 
-    .dow > div{
+  .dow > div{
     text-align: center;
-    letter-spacing: .18em; /* ✅ 小一点，且只作用在单个字母上 */
-    }
-
-
+    letter-spacing: .18em;        /* 只对单个词/字母做小字距 */
+  }
 
   .grid{
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: clamp(6px, 2vw, 14px);
+    padding: 2px;
   }
 
   .cell{
+    width: 100%;
     aspect-ratio: 1 / 1;
     height: auto;
     border-radius: 18px;
 
-    /* ✅ 强制每格内容正中（对齐稳定） */
     display: grid;
     place-items: center;
     text-align: center;
 
-    font-size: 26px;
+    font-size: clamp(16px, 3vw, 26px);
+    line-height: 1;
+
     border: 1px solid transparent;
     transition: background .15s ease, border-color .15s ease;
 
-    font-size: clamp(16px, 3vw, 26px);
+    /* 再次确保数字等宽（对齐更稳） */
     font-variant-numeric: tabular-nums lining-nums;
     font-feature-settings: "tnum" 1, "lnum" 1;
-    line-height: 1;
-    width: 100%; 
-
   }
 
   .cell.other{
@@ -161,6 +168,7 @@
     font-weight: 600;
     position: relative;
   }
+
   .cell.today::after{
     content: "";
     width: 6px;
@@ -173,7 +181,69 @@
     transform: translateX(-50%);
     opacity: .9;
   }
+
+  /* -------- Responsive: Notion 窄列/小 embed -------- */
+  @media (max-width: 420px){
+    .card{
+      padding: 16px 16px 14px;
+      border-radius: 20px;
+    }
+
+    .year{
+      font-size: 14px;
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+    }
+
+    .month{
+      font-size: 34px;
+    }
+
+    .btn{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      font-size: 20px;
+    }
+
+    .dow{
+      font-size: 14px;
+      gap: 10px;
+    }
+    .dow > div{
+      letter-spacing: .12em;
+    }
+
+    .grid{
+      gap: 10px;
+    }
+
+    .cell{
+      border-radius: 14px;
+      font-size: clamp(14px, 4vw, 20px);
+      aspect-ratio: 6 / 5; /* ✅ 窄屏稍扁，减少整体高度，更像 Notion 侧栏月历 */
+    }
+
+    .cell.today::after{
+      width: 5px;
+      height: 5px;
+      bottom: 8px;
+    }
+  }
+
+  @media (max-width: 340px){
+    .card{
+      padding: 14px;
+    }
+    .month{
+      font-size: 30px;
+    }
+    .grid, .dow{
+      gap: 8px;
+    }
+  }
 </style>
+
 
 
 </head>
