@@ -1,362 +1,334 @@
 <!DOCTYPE html>
-<html lang="zh">
+<!-- original:https://codepen.io/boudra/pen/raErwP -->
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Month Calendar</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar</title>
+
   <style>
-  :root{
-    --bg: #1f1e1c;               /* 卡片底：暖黑 */
-    --ink: #e8e3dc;              /* 主文字 */
-    --muted: rgba(232,227,220,.62);
-    --line: rgba(255,255,255,.10);
-    --chip: rgba(255,255,255,.08);
-    --hover: rgba(255,255,255,.06);
-    --shadow: 0 12px 32px rgba(0,0,0,.38);
-    --radius: 18px;
-    --accent: #c8b08a;           /* today 小点 */
-  }
+    :root{
+      --bg: #1f1e1c;                 /* 暖黑底 */
+      --ink: #e8e3dc;                /* 暖白字 */
+      --muted: rgba(232,227,220,.62);
+      --dim: rgba(232,227,220,.20);
+      --line: rgba(255,255,255,.10);
+      --line2: rgba(255,255,255,.14);
+      --hover: rgba(255,255,255,.07);
+      --chip: rgba(255,255,255,.10);
+      --accent: #c8b08a;
+      --shadow: 0 16px 40px rgba(0,0,0,.42);
 
-  *{ box-sizing: border-box; }
-
-  body{
-    margin: 0;
-    background: transparent;
-    font-family: "Times New Roman","Noto Serif SC",serif;
-    color: var(--ink);
-    display: grid;
-    place-items: center;
-    padding: 12px;
-    color-scheme: dark;
-
-    /* 数字等宽，减轻“看起来不对齐” */
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-  }
-
-  .card{
-    width: 100%;
-    max-width: 560px;
-    min-width: 0;                 /* ✅ 关键：不要用 min-width 顶爆 Notion 窄 embed */
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    box-shadow: var(--shadow);
-    padding: 22px 22px 18px;
-    overflow: hidden;
-  }
-
-  .header{
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    row-gap: 12px;
-    flex-wrap: wrap;              /* ✅ 关键：窄屏时允许换行，避免标题和按钮互挤 */
-    padding: 0 0 14px;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 16px;
-  }
-
-  .title{
-    text-align: left;
-    line-height: 1.05;
-    flex: 1 1 240px;              /* ✅ 标题区可缩可换行 */
-    min-width: 0;
-  }
-
-  .year{
-    font-size: 16px;
-    letter-spacing: 4px;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-
-  .month{
-    font-size: 44px;
-    font-weight: 500;
-    letter-spacing: .5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;      /* ✅ 极窄时保证不炸布局 */
-  }
-
-  .nav{
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin-top: 6px;
-    margin-left: auto;            /* ✅ 换行时保持靠右 */
-    flex: 0 0 auto;
-  }
-
-  .btn{
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.04);
-    cursor: pointer;
-    color: var(--ink);
-    display: grid;
-    place-items: center;
-    user-select: none;
-    transition: transform .06s ease, background .2s ease, border-color .2s ease;
-    font-size: 22px;
-  }
-  .btn:active{ transform: translateY(1px); }
-  .btn:hover{
-    background: rgba(255,255,255,.07);
-    border-color: rgba(255,255,255,.18);
-  }
-
-  .dow{
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: clamp(6px, 2vw, 14px);
-    padding: 10px 2px 8px;
-    color: rgba(232,227,220,.55);
-    font-size: 18px;
-    letter-spacing: 0;            /* 不要整行拉字距，会制造“不对齐”错觉 */
-  }
-
-  .dow > div{
-    text-align: center;
-    letter-spacing: .18em;        /* 只对单个词/字母做小字距 */
-  }
-
-  .grid{
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: clamp(6px, 2vw, 14px);
-    padding: 2px;
-  }
-
-  .cell{
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    height: auto;
-    border-radius: 18px;
-
-    display: grid;
-    place-items: center;
-    text-align: center;
-
-    font-size: clamp(16px, 3vw, 26px);
-    line-height: 1;
-
-    border: 1px solid transparent;
-    transition: background .15s ease, border-color .15s ease;
-
-    /* 再次确保数字等宽（对齐更稳） */
-    font-variant-numeric: tabular-nums lining-nums;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-  }
-
-  .cell.other{
-    color: rgba(232,227,220,.22);
-  }
-
-  .cell:hover{
-    background: var(--hover);
-    border-color: rgba(255,255,255,.10);
-  }
-
-  .cell.today{
-    background: rgba(255,255,255,.10);
-    border-color: rgba(255,255,255,.18);
-    font-weight: 600;
-    position: relative;
-  }
-
-  .cell.today::after{
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--accent);
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: .9;
-  }
-
-  /* -------- Responsive: Notion 窄列/小 embed -------- */
-  @media (max-width: 420px){
-    .card{
-      padding: 16px 16px 14px;
-      border-radius: 20px;
+      /* 角变小：更利落 */
+      --radius: 14px;
+      --cell-radius: 14px;
+      --btn-radius: 999px;
     }
 
-    .year{
+    body{
+      margin: 0;
+      background: transparent;
+      color: var(--ink);
+      font-family: "Times New Roman","Noto Serif SC",serif;
+      color-scheme: dark;
+
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1, "lnum" 1;
+    }
+
+    #calendari{
+      margin: 0 auto;
       font-size: 14px;
-      letter-spacing: 3px;
-      margin-bottom: 6px;
+      position: relative; /* 让 absolute table 以容器为参考，更适配 embed */
+      width: 100%;
+      max-width: 520px;
+      min-height: 360px;  /* 给动画切换留空间 */
     }
 
-    .month{
-      font-size: 34px;
+    table{
+      border-collapse: collapse;
+      table-layout: fixed;
+      position: absolute;
+
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+
+      /* 角更干净：外阴影 + 内描边 */
+      box-shadow:
+        var(--shadow),
+        inset 0 0 0 1px rgba(255,255,255,.05);
     }
 
-    .btn{
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
+    td, th{
+      text-align: center;
+      background: transparent;
+    }
+
+    th{
+      padding: 10px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid rgba(255,255,255,.06);
+      color: var(--ink);
+      text-shadow: none;
+      font-weight: normal;
+    }
+
+    tr:first-child th{
       font-size: 20px;
+      font-weight: 600;
+      border-left: none;
+      border-top: none;
+      border-right: none;
+      background: transparent;
+      padding: 14px 10px 10px;
     }
 
-    .dow{
-      font-size: 14px;
-      gap: 10px;
-    }
-    .dow > div{
+    tr:nth-child(2) th{
+      padding: 6px 5px;
+      color: var(--muted);
       letter-spacing: .12em;
+      border-right: 1px solid rgba(255,255,255,.06);
     }
 
-    .grid{
-      gap: 10px;
+    th .any{
+      font-size: 12px;
+      display: block;
+      color: var(--muted);
+      letter-spacing: 3px;
+      margin-top: 6px;
     }
 
-    .cell{
-      border-radius: 14px;
-      font-size: clamp(14px, 4vw, 20px);
-      aspect-ratio: 6 / 5; /* ✅ 窄屏稍扁，减少整体高度，更像 Notion 侧栏月历 */
+    td{
+      padding: 0;
+      border-bottom: 1px solid rgba(255,255,255,.04);
     }
 
-    .cell.today::after{
-      width: 5px;
-      height: 5px;
-      bottom: 8px;
+    td > span{
+      display: block;
+      padding: 10px;
+      color: var(--ink);
+      border-radius: var(--cell-radius);
+      border: 2px solid transparent;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
     }
-  }
 
-  @media (max-width: 340px){
-    .card{
-      padding: 14px;
+    /* 原来的 even stripe 在深色下会显“脏”，换成更克制的微弱对比 */
+    td:nth-child(even) > span{
+      background: rgba(255,255,255,.012);
     }
-    .month{
-      font-size: 30px;
+
+    td.fora > span{
+      opacity: .22;
+      color: var(--dim);
     }
-    .grid, .dow{
-      gap: 8px;
+
+    td:last-child > span,
+    td:nth-child(6) > span{
+      color: rgba(232,227,220,.82);
     }
-  }
-</style>
 
+    td > span:hover{
+      background: var(--hover);
+      border-color: rgba(255,255,255,.10);
+      color: var(--ink);
+    }
 
+    td.avui > span{
+      background: var(--chip);
+      border-color: rgba(255,255,255,.14);
+      font-weight: 700;
+      position: relative;
+    }
 
+    td.avui > span::after{
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      transform: translateX(-50%);
+    }
+
+    /* ===== 对称箭头：用同一个 SVG + 镜像 ===== */
+    .boto-next, .boto-prev{
+      position: absolute;
+      top: 15px;
+      height: 30px;
+      width: 30px;
+
+      border-radius: var(--btn-radius);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: var(--ink);
+
+      padding: 0;
+      line-height: 1;
+
+      display: grid;
+      place-items: center;
+
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    .boto-prev{ left: 10px; }
+    .boto-next{ right: 10px; }
+
+    .boto-next:hover, .boto-prev:hover{
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.20);
+    }
+
+    .boto-next svg, .boto-prev svg{
+      width: 14px;
+      height: 14px;
+      display: block;
+    }
+
+    /* 左箭头：同一个图形镜像，保证几何对称 */
+    .boto-prev svg{
+      transform: scaleX(-1);
+    }
+
+    button:focus{ outline: none; }
+
+    /* 让 embed 在窄宽时也不至于挤 */
+    @media (max-width: 360px){
+      #calendari{ max-width: 360px; min-height: 340px; }
+      tr:first-child th{ font-size: 18px; }
+      td > span{ padding: 9px; }
+    }
+  </style>
 </head>
-<body>
-  <div class="card" id="card">
-    <div class="header">
-      <div class="title">
-        <div class="year" id="yearText"></div>
-        <div class="month" id="monthText"></div>
-      </div>
-      <div class="nav">
-        <div class="btn" id="prev" aria-label="prev month">‹</div>
-        <div class="btn" id="next" aria-label="next month">›</div>
-      </div>
-    </div>
 
-    <div class="dow" id="dow"></div>
-    <div class="grid" id="grid"></div>
-  </div>
+<body>
+  <div id="calendari"></div>
 
   <script>
-    // 周一开头（更像 planner）
-    const DOW = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var mesos = [
+      'January','February','March','April','May','June',
+      'July','August','September','October','November','December'
+    ];
 
-    const dowEl = document.getElementById("dow");
-    const gridEl = document.getElementById("grid");
-    const yearText = document.getElementById("yearText");
-    const monthText = document.getElementById("monthText");
+    var dies_abr = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-    DOW.forEach(d => {
-      const div = document.createElement("div");
-      div.textContent = d;
-      dowEl.appendChild(div);
-    });
-
-    const today = new Date();
-    // 当前视图月份（用每月1号定位）
-    let view = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    function pad2(n){ return String(n).padStart(2,"0"); }
-
-    function render(){
-      gridEl.innerHTML = "";
-
-      const y = view.getFullYear();
-      const m = view.getMonth();
-
-      yearText.textContent = String(y);
-      monthText.textContent = MONTHS[m];
-
-      // 获取本月第一天是周几（把周日=0转换成周一=0）
-      const first = new Date(y, m, 1);
-      const firstDay = (first.getDay() + 6) % 7; // Mon=0 ... Sun=6
-
-      // 本月天数
-      const daysInMonth = new Date(y, m + 1, 0).getDate();
-
-      // 上月天数
-      const daysInPrevMonth = new Date(y, m, 0).getDate();
-
-      // 网格需要 6 行更稳定（嵌入 Notion 不会跳高度）
-      const totalCells = 42;
-
-      for(let i=0; i<totalCells; i++){
-        const cell = document.createElement("div");
-        cell.className = "cell";
-
-        // 计算这个格子的日期
-        const dayNum = i - firstDay + 1;
-        let cellDate;
-
-        if(dayNum < 1){
-          // 上月
-          const d = daysInPrevMonth + dayNum;
-          cell.textContent = d;
-          cell.classList.add("other");
-          cellDate = new Date(y, m - 1, d);
-        }else if(dayNum > daysInMonth){
-          // 下月
-          const d = dayNum - daysInMonth;
-          cell.textContent = d;
-          cell.classList.add("other");
-          cellDate = new Date(y, m + 1, d);
-        }else{
-          // 本月
-          cell.textContent = dayNum;
-          cellDate = new Date(y, m, dayNum);
-        }
-
-        // today 高亮
-        if(
-          cellDate.getFullYear() === today.getFullYear() &&
-          cellDate.getMonth() === today.getMonth() &&
-          cellDate.getDate() === today.getDate()
-        ){
-          cell.classList.add("today");
-        }
-
-        gridEl.appendChild(cell);
-      }
+    Number.prototype.pad = function(num) {
+      var str = '';
+      for (var i = 0; i < (num - this.toString().length); i++) str += '0';
+      return str += this.toString();
     }
 
-    document.getElementById("prev").addEventListener("click", () => {
-      view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
-      render();
-    });
-    document.getElementById("next").addEventListener("click", () => {
-      view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
-      render();
-    });
+    // 对称 chevron（右箭头），左箭头用 CSS scaleX(-1) 镜像
+    var CHEVRON_SVG =
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M9.2 5.6a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 1 1-1.4-1.4L14.8 12 9.2 6.4a1 1 0 0 1 0-1.4z"/>' +
+      '</svg>';
 
-    render();
+    function calendari(widget, data){
+      var original = widget.getElementsByClassName('actiu')[0];
+
+      if (typeof original === 'undefined'){
+        original = document.createElement('table');
+        original.setAttribute('data-actual',
+          data.getFullYear() + '/' +
+          data.getMonth().pad(2) + '/' +
+          data.getDate().pad(2)
+        );
+        widget.appendChild(original);
+      }
+
+      var diff = data - new Date(original.getAttribute('data-actual'));
+      diff = new Date(diff).getMonth();
+
+      var e = document.createElement('table');
+      e.className = diff === 0 ? 'amagat-esquerra' : 'amagat-dreta';
+      e.innerHTML = '';
+      widget.appendChild(e);
+
+      e.setAttribute('data-actual',
+        data.getFullYear() + '/' +
+        data.getMonth().pad(2) + '/' +
+        data.getDate().pad(2)
+      );
+
+      var fila = document.createElement('tr');
+      var titol = document.createElement('th');
+      titol.setAttribute('colspan', 7);
+
+      var boto_prev = document.createElement('button');
+      boto_prev.className = 'boto-prev';
+      boto_prev.innerHTML = CHEVRON_SVG; // 左箭头由 CSS 镜像产生
+
+      var boto_next = document.createElement('button');
+      boto_next.className = 'boto-next';
+      boto_next.innerHTML = CHEVRON_SVG;
+
+      titol.appendChild(boto_prev);
+      titol.appendChild(document.createElement('span')).innerHTML =
+        mesos[data.getMonth()] + '<span class="any">' + data.getFullYear() + '</span>';
+      titol.appendChild(boto_next);
+
+      boto_prev.onclick = function(){
+        data.setMonth(data.getMonth() - 1);
+        calendari(widget, data);
+      };
+
+      boto_next.onclick = function(){
+        data.setMonth(data.getMonth() + 1);
+        calendari(widget, data);
+      };
+
+      fila.appendChild(titol);
+      e.appendChild(fila);
+
+      fila = document.createElement('tr');
+      for (var i = 1; i < 7; i++) fila.innerHTML += '<th>' + dies_abr[i] + '</th>';
+      fila.innerHTML += '<th>' + dies_abr[0] + '</th>';
+      e.appendChild(fila);
+
+      var inici_mes = new Date(data.getFullYear(), data.getMonth(), -1).getDay();
+      var actual = new Date(data.getFullYear(), data.getMonth(), -inici_mes);
+
+      for (var s = 0; s < 6; s++){
+        var fila = document.createElement('tr');
+
+        for (var d = 1; d < 8; d++){
+          var cela = document.createElement('td');
+          var span = document.createElement('span');
+          cela.appendChild(span);
+
+          span.innerHTML = actual.getDate();
+
+          if (actual.getMonth() !== data.getMonth()) cela.className = 'fora';
+
+          if (data.getDate() == actual.getDate() && data.getMonth() == actual.getMonth())
+            cela.className = 'avui';
+
+          actual.setDate(actual.getDate() + 1);
+          fila.appendChild(cela);
+        }
+        e.appendChild(fila);
+      }
+
+      setTimeout(function(){
+        e.className = 'actiu';
+        original.className += diff === 0 ? ' amagat-dreta' : ' amagat-esquerra';
+      }, 20);
+
+      original.className = 'inactiu';
+
+      setTimeout(function(){
+        var inactius = document.getElementsByClassName('inactiu');
+        for (var i = 0; i < inactius.length; i++) widget.removeChild(inactius[i]);
+      }, 1000);
+    }
+
+    calendari(document.getElementById('calendari'), new Date());
   </script>
 </body>
 </html>
