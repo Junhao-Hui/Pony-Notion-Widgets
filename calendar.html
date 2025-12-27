@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background: #ffe0b2;
+            font-family: "黑体";
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .date {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+        }
+        .week {
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="week" id="week"></div>
+    <div class="date" id="date"></div>
+    <script>
+        const now = new Date();
+        const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+        document.getElementById("week").innerText = weeks[now.getDay()];
+        document.getElementById("date").innerText = now.getDate();
+    </script>
+</body>
+</html>
