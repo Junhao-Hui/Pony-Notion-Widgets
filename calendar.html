@@ -35,8 +35,9 @@
   }
 
   .card{
-    width: 560px;                 /* 你截图那种更宽的比例 */
-    max-width: 92vw;
+    width: 100%;
+    max-width: 560px;
+    min-width: 260px;
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 24px;
@@ -103,7 +104,7 @@
     .dow{
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 14px;
+    gap: clamp(6px, 2vw, 14px);
     padding: 10px 2px 8px;
     color: rgba(232,227,220,.55);
     font-size: 18px;
@@ -120,12 +121,12 @@
   .grid{
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 14px;
-    padding: 8px 2px 2px;
+    gap: clamp(6px, 2vw, 14px);
   }
 
   .cell{
-    height: 56px;
+    aspect-ratio: 1 / 1;
+    height: auto;
     border-radius: 18px;
 
     /* ✅ 强制每格内容正中（对齐稳定） */
@@ -137,6 +138,7 @@
     border: 1px solid transparent;
     transition: background .15s ease, border-color .15s ease;
 
+    font-size: clamp(16px, 3vw, 26px);
     font-variant-numeric: tabular-nums lining-nums;
     font-feature-settings: "tnum" 1, "lnum" 1;
     line-height: 1;
