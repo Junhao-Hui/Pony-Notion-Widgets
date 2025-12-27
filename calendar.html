@@ -1,33 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
+    <meta charset="UTF-8" />
+    <title>Calendar Widget</title>
     <style>
         body {
-            background: #ffe0b2;
-            font-family: "黑体";
+            margin: 0;
+            padding: 24px 20px;
+            background: #f6f3ee; /* 米白 */
+            font-family: "Times New Roman", "Noto Serif SC", serif;
+            color: #3a3a3a;
             text-align: center;
-            padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
         }
+
+        .year {
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #9c9388;
+            margin-bottom: 6px;
+        }
+
         .date {
-            font-size: 48px;
-            font-weight: bold;
-            color: #333;
+            font-size: 56px;
+            font-weight: 500;
+            line-height: 1;
+            margin: 4px 0 10px;
         }
+
         .week {
-            font-size: 18px;
-            color: #666;
+            font-size: 15px;
+            color: #7a736b;
+            letter-spacing: 1px;
+        }
+
+        .divider {
+            width: 40px;
+            height: 1px;
+            background: #cfc8be;
+            margin: 14px auto;
         }
     </style>
 </head>
 <body>
-    <div class="week" id="week"></div>
+    <div class="year" id="year"></div>
     <div class="date" id="date"></div>
+    <div class="divider"></div>
+    <div class="week" id="week"></div>
+
     <script>
         const now = new Date();
-        const weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
-        document.getElementById("week").innerText = weeks[now.getDay()];
+        const weeks = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+        document.getElementById("year").innerText = now.getFullYear();
         document.getElementById("date").innerText = now.getDate();
+        document.getElementById("week").innerText = weeks[now.getDay()];
     </script>
 </body>
 </html>
