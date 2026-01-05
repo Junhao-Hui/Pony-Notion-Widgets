@@ -12,9 +12,7 @@
       --muted: rgba(232,227,220,.62);
       --line: rgba(255,255,255,.10);
       --line2: rgba(255,255,255,.14);
-      --chip: rgba(255,255,255,.06);
       --accent: #c8b08a;
-      --shadow: 0 16px 40px rgba(0,0,0,.42);
 
       --radius: 14px;
       --pill: 999px;
@@ -26,6 +24,7 @@
       color: var(--ink);
       font-family: "Times New Roman","Noto Serif SC",serif;
       color-scheme: dark;
+
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1, "lnum" 1;
     }
@@ -40,8 +39,8 @@
       background: var(--bg);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
       overflow: hidden;
+      box-shadow: none;
     }
 
     .head{
@@ -83,7 +82,7 @@
     .meta{
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: baseline;
       gap: 10px;
       margin-bottom: 8px;
     }
@@ -106,10 +105,23 @@
       transform: translateY(1px);
     }
 
+    .right{
+      display: inline-flex;
+      align-items: baseline;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
     .pct{
       font-size: 12px;
       color: var(--muted);
       letter-spacing: .10em;
+    }
+
+    .count{
+      font-size: 12px;
+      color: rgba(232,227,220,.44);
+      letter-spacing: .06em;
     }
 
     .bar{
@@ -129,7 +141,6 @@
       transition: width .6s ease;
     }
 
-    /* 小屏 */
     @media (max-width: 360px){
       .title{ font-size: 18px; }
       .head{ padding: 14px 14px 12px; }
@@ -142,7 +153,7 @@
   <div class="wrap">
     <div class="card">
       <div class="head">
-        <h1 class="title">当前进度</h1>
+        <h1 class="title">2026 Progress</h1>
         <div class="metaTop" id="weekText">WEEK —</div>
       </div>
 
@@ -150,7 +161,10 @@
         <div class="row">
           <div class="meta">
             <div class="label"><span class="dot"></span>Year</div>
-            <div class="pct" id="yearPct">—%</div>
+            <div class="right">
+              <div class="count" id="yearCount">—/— d</div>
+              <div class="pct" id="yearPct">—%</div>
+            </div>
           </div>
           <div class="bar"><div class="fill" id="yearFill"></div></div>
         </div>
@@ -158,7 +172,10 @@
         <div class="row">
           <div class="meta">
             <div class="label"><span class="dot"></span>Month</div>
-            <div class="pct" id="monthPct">—%</div>
+            <div class="right">
+              <div class="count" id="monthCount">—/— d</div>
+              <div class="pct" id="monthPct">—%</div>
+            </div>
           </div>
           <div class="bar"><div class="fill" id="monthFill"></div></div>
         </div>
@@ -166,7 +183,10 @@
         <div class="row">
           <div class="meta">
             <div class="label"><span class="dot"></span>Day</div>
-            <div class="pct" id="dayPct">—%</div>
+            <div class="right">
+              <div class="count" id="dayCount">—/24.0 h</div>
+              <div class="pct" id="dayPct">—%</div>
+            </div>
           </div>
           <div class="bar"><div class="fill" id="dayFill"></div></div>
         </div>
@@ -178,8 +198,11 @@
     // ===== helpers =====
     const clamp01 = (x) => Math.max(0, Math.min(1, x));
     const pct = (x) => Math.round(clamp01(x) * 100);
+    const pad2 = (n) => String(n).padStart(2, "0");
 
-    // ISO week number (week starts Monday, week 1 contains Jan 4th)
+    function round1(x){ return Math.round(x * 10) / 10; } // 1 decimal
+
+    // ISO week number (Mon-start, week 1 has Jan 4th)
     function isoWeekNumber(date = new Date()){
       const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
       const dayNum = d.getUTCDay() || 7;              // Mon=1..Sun=7
@@ -189,22 +212,22 @@
       return { week: weekNo, year: d.getUTCFullYear() };
     }
 
-    function yearProgress(d = new Date()){
+    function yearRange(d){
       const start = new Date(d.getFullYear(), 0, 1, 0,0,0,0);
       const end   = new Date(d.getFullYear() + 1, 0, 1, 0,0,0,0);
-      return (d - start) / (end - start);
+      return { start, end };
     }
 
-    function monthProgress(d = new Date()){
+    function monthRange(d){
       const start = new Date(d.getFullYear(), d.getMonth(), 1, 0,0,0,0);
       const end   = new Date(d.getFullYear(), d.getMonth() + 1, 1, 0,0,0,0);
-      return (d - start) / (end - start);
+      return { start, end };
     }
 
-    function dayProgress(d = new Date()){
+    function dayRange(d){
       const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0);
       const end   = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0,0,0,0);
-      return (d - start) / (end - start);
+      return { start, end };
     }
 
     function setBar(fillId, pctId, value){
@@ -218,16 +241,42 @@
 
       // week header
       const w = isoWeekNumber(d);
-      document.getElementById("weekText").textContent = `WEEK ${String(w.week).padStart(2,"0")} · ${w.year}`;
+      document.getElementById("weekText").textContent = `WEEK ${pad2(w.week)} · ${w.year}`;
 
-      // bars
-      setBar("yearFill",  "yearPct",  yearProgress(d));
-      setBar("monthFill", "monthPct", monthProgress(d));
-      setBar("dayFill",   "dayPct",   dayProgress(d));
+      // Year
+      {
+        const { start, end } = yearRange(d);
+        const prog = (d - start) / (end - start);
+        setBar("yearFill", "yearPct", prog);
+
+        const daysDone = Math.floor((d - start) / 86400000); // completed full days
+        const daysTotal = Math.round((end - start) / 86400000);
+        document.getElementById("yearCount").textContent = `${daysDone}/${daysTotal}天`;
+      }
+
+      // Month
+      {
+        const { start, end } = monthRange(d);
+        const prog = (d - start) / (end - start);
+        setBar("monthFill", "monthPct", prog);
+
+        const daysDone = Math.floor((d - start) / 86400000);
+        const daysTotal = Math.round((end - start) / 86400000);
+        document.getElementById("monthCount").textContent = `${daysDone}/${daysTotal}天`;
+      }
+
+      // Day (hours with 1 decimal)
+      {
+        const { start, end } = dayRange(d);
+        const prog = (d - start) / (end - start);
+        setBar("dayFill", "dayPct", prog);
+
+        const hoursDone = round1((d - start) / 3600000);
+        document.getElementById("dayCount").textContent = `${hoursDone}/24.0时`;
+      }
     }
 
     render();
-    // 30 秒刷新一次就足够（Notion embed 稳）
     setInterval(render, 30000);
   </script>
 </body>
